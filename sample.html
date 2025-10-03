@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AgriChainTrack — Admin Dashboard Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#16a34a; --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.05); --radius:12px; --shadow:0 6px 18px rgba(2,6,23,0.6);
+      font-family: Inter, system-ui, sans-serif;
+    }
+    body{margin:0;background:var(--bg);color:#e6eef6;font-family:inherit;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:20px;}
+    .container{width:100%;max-width:1100px;}
+    h1,h2,h3,p{margin:0}
+    button{cursor:pointer}
+    input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:inherit;width:100%;margin-top:8px}
+    .btn{background:var(--accent);color:#062017;padding:10px 16px;border:none;border-radius:8px;font-weight:600;margin-top:12px}
+    .card{background:var(--glass);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-top:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.05)}
+    th{color:var(--muted);font-weight:600}
+    footer{text-align:center;color:var(--muted);margin-top:20px;font-size:13px}
+    .nav a{color:#fff;text-decoration:none;display:block;padding:10px;border-radius:8px;margin-top:6px}
+    .nav a:hover{background:var(--glass)}
+    aside{width:240px;background:var(--card);padding:20px;display:flex;flex-direction:column;gap:20px;transition:0.3s}
+    .hidden{display:none;}
+    @media(max-width:700px){
+      aside{position:fixed;left:-240px;top:0;bottom:0;z-index:999;}
+      aside.open{left:0;}
+      .menu-btn{display:inline-block;}
+    }
+    @media(min-width:701px){.menu-btn{display:none;}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Step 1: Account Creation -->
+  <div id="page-create-account">
+    <h1>Create Account</h1>
+    <input type="text" id="input-name" placeholder="Enter your name"/>
+    <input type="text" id="input-account" placeholder="Enter new account ID like 'name@agrizen'"/>
+    <button class="btn" onclick="createAccount()">Continue</button>
+  </div>
+
+  <!-- Step 2: Home / Welcome Page -->
+  <div id="page-home" class="hidden">
+    <h1>Welcome, <span id="welcome-user"></span>!</h1>
+    <p>Your account ID: <span id="account-id"></span></p>
+    <button class="btn" onclick="goToDashboard()">Go to Dashboard</button>
+  </div>
+
+  <!-- Step 3: Dashboard -->
+  <div id="page-dashboard" class="hidden" style="display:flex;gap:20px;flex-wrap:wrap;">
+    <aside id="sidebar">
+      <div class="brand">🌱 Agri Admin</div>
+      <nav class="nav">
+        <a href="#" onclick="showDashboard()">📊 Dashboard</a>
+        <a href="#" onclick="showFarmers()">👥 Farmers</a>
+        <a href="#">🌾 Lots</a>
+        <a href="#">💰 Payments</a>
+        <a href="#">⚙️ Settings</a>
+      </nav>
+    </aside>
+    <main style="flex:1;">
+      <!-- Dashboard cards -->
+      <div id="dashboard-main">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h1>Admin Dashboard</h1>
+          <button class="btn menu-btn" onclick="toggleMenu()">☰ Menu</button>
+        </div>
+
+        <div class="grid">
+          <div class="card"><h2>124</h2><p>Total Farmers</p></div>
+          <div class="card"><h2>56</h2><p>Active Lots</p></div>
+          <div class="card"><h2>₹4.2L</h2><p>Revenue</p></div>
+          <div class="card"><h2>92%</h2><p>Verified Records</p></div>
+        </div>
+
+        <!-- Chart card -->
+        <div class="card">
+          <h3>Profit & Loss by Area</h3>
+          <canvas id="profitChart" style="width:100%;max-height:300px;"></canvas>
+        </div>
+      </div>
+
+      <!-- Farmers table -->
+      <div id="farmers-section" class="hidden">
+        <h2>Farmers Information</h2>
+        <div class="card" style="overflow-x:auto">
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Area</th>
+              <th>Crop Specialist</th>
+              <th>Highly Sold Goods</th>
+            </tr>
+            <tr><td>Ramesh</td><td>32</td><td>Kodaiyur</td><td>Tomatoes</td><td>Tomato</td></tr>
+            <tr><td>Meena</td><td>28</td><td>Pollachi</td><td>Rice</td><td>Rice</td></tr>
+            <tr><td>Suresh</td><td>40</td><td>Udumalai</td><td>Chili</td><td>Chili</td></tr>
+            <tr><td>Vijay</td><td>35</td><td>Coimbatore</td><td>Banana</td><td>Banana</td></tr>
+            <tr><td>Anitha</td><td>30</td><td>Salem</td><td>Turmeric</td><td>Turmeric</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <footer>© AgriChainTrack Admin • Student Prototype</footer>
+    </main>
+  </div>
+</div>
+
+<script>
+  function createAccount(){
+    const name = document.getElementById("input-name").value || "Unknown";
+    const account = document.getElementById("input-account").value || "unknown@agrizen";
+    document.getElementById("welcome-user").textContent = name;
+    document.getElementById("account-id").textContent = account;
+    document.getElementById("page-create-account").style.display="none";
+    document.getElementById("page-home").style.display="block";
+  }
+
+  function goToDashboard(){
+    document.getElementById("page-home").style.display="none";
+    document.getElementById("page-dashboard").style.display="flex";
+    renderChart();
+  }
+
+  function toggleMenu(){
+    document.getElementById("sidebar").classList.toggle("open");
+  }
+
+  function showFarmers(){
+    document.getElementById("dashboard-main").classList.add("hidden");
+    document.getElementById("farmers-section").classList.remove("hidden");
+  }
+  function showDashboard(){
+    document.getElementById("farmers-section").classList.add("hidden");
+    document.getElementById("dashboard-main").classList.remove("hidden");
+  }
+
+  function renderChart(){
+    const ctx = document.getElementById('profitChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Kodaiyur','Pollachi','Udumalai','Coimbatore','Salem'],
+        datasets: [
+          {label:'Profit (₹)', data:[12000, 18000, 8000, 15000, 10000], backgroundColor:'#16a34a'},
+          {label:'Loss (₹)', data:[2000, 1500, 3000, 1000, 2500], backgroundColor:'#dc2626'}
+        ]
+      },
+      options: {
+        responsive:true,
+        plugins:{legend:{position:'top', labels:{color:'#e6eef6'}}},
+        scales:{
+          x:{ticks:{color:'#e6eef6'}, grid:{color:'rgba(255,255,255,0.1)'}},
+          y:{ticks:{color:'#e6eef6'}, grid:{color:'rgba(255,255,255,0.1)'}}
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>
